@@ -93,9 +93,12 @@ class Particle {
             // Base gust
             let gust = Math.sin(time * 2) * 0.75 + Math.sin(time * 0.5) * 0.5 + Math.sin(time * 3.5) * 0.25;
 
-            // "Storm Burst"
-            if (Math.sin(time * 0.5) > 0.8) {
-                gust += 7.5;
+            // "Storm Burst" - smoothed
+            const stormSine = Math.sin(time * 0.5);
+            if (stormSine > 0.5) {
+                // Smooth transition for speed change
+                // Map range 0.5-1.0 to 0-4 (reduced max speed)
+                gust += (stormSine - 0.5) * 8;
             }
 
             currentVx += gust;

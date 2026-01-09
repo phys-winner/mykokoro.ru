@@ -49,8 +49,8 @@ body[data-bg="ts"] {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: -1;
-    background: radial-gradient(circle at center, transparent 0%, #000 100%);
+    z-index: -2;
+    background: radial-gradient(circle at center, transparent 0%, #050505 100%);
     pointer-events: none;
 }
 
@@ -60,7 +60,7 @@ body[data-bg="ts"] {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1;
+    z-index: -1;
     /* Above background, but behind content */
     /* Bring to front */
     pointer-events: none;
@@ -128,7 +128,7 @@ body[data-bg="ts"] header h1 {
     border-radius: 16px;
     overflow: hidden;
     text-decoration: none;
-    color: white;
+    color: #fafafa;
     /* transition: transform 0.4s ... removed to avoid conflict with JS tilt interactions, or handled carefully */
     transition: box-shadow 0.4s ease;
     /* Transformed handled by JS for tilt, but we need smooth entry/exit */
@@ -263,21 +263,21 @@ body[data-bg="ts"] header h1 {
 
 .card[data-theme="ss2"] .btn:hover {
     background: var(--color-ss2);
-    color: #000;
+    color: #050505;
     border-color: var(--color-ss2);
     box-shadow: 0 0 15px var(--color-ss2);
 }
 
 .card[data-theme="tld"] .btn:hover {
     background: var(--color-tld);
-    color: #000;
+    color: #050505;
     border-color: var(--color-tld);
     box-shadow: 0 0 15px var(--color-tld);
 }
 
 .card[data-theme="ts"] .btn:hover {
     background: var(--color-ts);
-    color: #fff;
+    color: #fafafa;
     border-color: var(--color-ts);
     box-shadow: 0 0 15px var(--color-ts);
 }
