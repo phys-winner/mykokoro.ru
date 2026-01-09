@@ -206,21 +206,40 @@ cards.forEach(card => {
         const rotateY = ((x - centerX) / centerX) * 10;
 
         // Apply transform with perspective
-        // Lift the card slightly (translateZ) and scale it up
         card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05) translateY(-10px)`;
-        // Remove transition during movement for instant response
         card.style.transition = 'box-shadow 0.4s ease';
 
-        // Inner image parallax (optional, keeps image flat or moves against tilt)
-        // const img = card.querySelector('img');
-        // img.style.transform = `scale(1.1) translateX(${rotateY * -0.5}px) translateY(${rotateX * -0.5}px)`;
+        // Parallax Effects
+        const img = card.querySelector('.card-image img');
+        const contentInner = card.querySelector('.card-content-inner');
+
+        // Move image slightly in opposite direction of tilt
+        const moveX = (x - centerX) / centerX * -15; // Max 15px
+        const moveY = (y - centerY) / centerY * -15;
+
+        img.style.transform = `scale(1.2) translate(${moveX}px, ${moveY}px)`;
+        img.style.transition = 'filter 0.5s ease'; // Remove transform transition for instant feedback
+
+        // Move content slightly in the direction of tilt (pop out)
+        const contentX = (x - centerX) / centerX * 15;
+        const contentY = (y - centerY) / centerY * 15;
+        contentInner.style.transform = `translate(${contentX}px, ${contentY}px)`;
     });
 
     card.addEventListener('mouseleave', () => {
         // Reset transform
         card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1) translateY(0)';
-        // Re-enable transition for smooth return
         card.style.transition = 'transform 0.5s ease, box-shadow 0.4s ease';
+
+        // Reset Parallax
+        const img = card.querySelector('.card-image img');
+        const contentInner = card.querySelector('.card-content-inner');
+
+        img.style.transform = 'scale(1.1) translate(0, 0)';
+        img.style.transition = 'transform 0.6s cubic-bezier(0.33, 1, 0.68, 1), filter 0.5s ease';
+
+        contentInner.style.transform = 'translate(0, 0)';
+        contentInner.style.transition = 'transform 0.6s cubic-bezier(0.33, 1, 0.68, 1)';
 
         activeTheme = 'default';
         document.body.removeAttribute('data-bg'); // Reset background
