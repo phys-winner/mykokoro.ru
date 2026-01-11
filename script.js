@@ -192,6 +192,11 @@ function animate() {
 initParticles();
 animate();
 
+// Mobile Detection
+function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 900;
+}
+
 // Interaction Handlers
 const cardWrappers = document.querySelectorAll('.card-wrapper');
 
@@ -206,19 +211,22 @@ cardWrappers.forEach(wrapper => {
     wrapper.addEventListener('mouseleave', () => {
         transitTheme('default');
 
-        // Reset transform
-        card.style.transform = 'rotateX(0) rotateY(0) scale3d(1, 1, 1) translateY(0)';
-        card.style.transition = 'transform 0.6s cubic-bezier(0.33, 1, 0.68, 1), box-shadow 0.4s ease';
+        // Only reset transforms on desktop
+        if (!isMobile()) {
+            // Reset transform
+            card.style.transform = 'rotateX(0) rotateY(0) scale3d(1, 1, 1) translateY(0)';
+            card.style.transition = 'transform 0.6s cubic-bezier(0.33, 1, 0.68, 1), box-shadow 0.4s ease';
 
-        // Reset Parallax
-        const img = card.querySelector('.card-image img');
-        const contentInner = card.querySelector('.card-content-inner');
+            // Reset Parallax
+            const img = card.querySelector('.card-image img');
+            const contentInner = card.querySelector('.card-content-inner');
 
-        img.style.transform = 'translate(0, 0)';
-        img.style.transition = 'transform 0.8s cubic-bezier(0.33, 1, 0.68, 1), filter 0.5s ease';
+            img.style.transform = 'translate(0, 0)';
+            img.style.transition = 'transform 0.8s cubic-bezier(0.33, 1, 0.68, 1), filter 0.5s ease';
 
-        contentInner.style.transform = 'translate(0, 0)';
-        contentInner.style.transition = 'transform 0.8s cubic-bezier(0.33, 1, 0.68, 1)';
+            contentInner.style.transform = 'translate(0, 0)';
+            contentInner.style.transition = 'transform 0.8s cubic-bezier(0.33, 1, 0.68, 1)';
+        }
     });
 
     wrapper.addEventListener('touchstart', () => {
@@ -226,8 +234,11 @@ cardWrappers.forEach(wrapper => {
         transitTheme(theme);
     });
 
-    // 3D Tilt Effect
+    // 3D Tilt Effect - Only on Desktop
     wrapper.addEventListener('mousemove', (e) => {
+        // Skip all transform and parallax effects on mobile
+        if (isMobile()) return;
+
         const rect = wrapper.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
