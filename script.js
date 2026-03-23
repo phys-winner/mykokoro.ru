@@ -1,6 +1,8 @@
 const canvas = document.getElementById('particleCanvas');
 const ctx = canvas.getContext('2d');
 
+const TWO_PI = Math.PI * 2;
+
 let width, height;
 let particles = [];
 let activeTheme = 'default';
@@ -83,13 +85,10 @@ class Particle {
         }
     }
 
-    update() {
-        const theme = themes[activeTheme];
-
+    update(time, theme) {
         // Dynamic Wind Calculation
         let currentVx = this.vx;
         if (activeTheme === 'tld') {
-            const time = Date.now() / 1000;
             // Base gust
             let gust = Math.sin(time * 2) * 0.75 + Math.sin(time * 0.5) * 0.5 + Math.sin(time * 3.5) * 0.25;
 
@@ -124,8 +123,7 @@ class Particle {
         }
     }
 
-    draw() {
-        const theme = themes[activeTheme];
+    draw(theme) {
         ctx.fillStyle = theme.color;
 
         if (theme.type === 'square') {
@@ -133,11 +131,11 @@ class Particle {
         } else if (theme.type === 'wisp') {
             ctx.beginPath();
             const radius = Math.abs(this.size * Math.sin(this.life * 0.05) + 2);
-            ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
+            ctx.arc(this.x, this.y, radius, 0, TWO_PI);
             ctx.fill();
         } else {
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.arc(this.x, this.y, this.size, 0, TWO_PI);
             ctx.fill();
         }
     }
@@ -158,7 +156,7 @@ function initParticles() {
     }
 }
 
-function animate() {
+function animate(timestamp) {
     ctx.clearRect(0, 0, width, height);
 
     // Smooth Transition Logic
@@ -181,9 +179,13 @@ function animate() {
 
     ctx.globalAlpha = crystalOpacity;
 
+    // Performance Optimization: Cache current theme and calculate time once per frame
+    const currentTheme = themes[activeTheme];
+    const time = timestamp ? timestamp / 1000 : Date.now() / 1000;
+
     particles.forEach(p => {
-        p.update();
-        p.draw();
+        p.update(time, currentTheme);
+        p.draw(currentTheme);
     });
 
     requestAnimationFrame(animate);
