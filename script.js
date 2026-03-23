@@ -203,12 +203,12 @@ const cardWrappers = document.querySelectorAll('.card-wrapper');
 cardWrappers.forEach(wrapper => {
     const card = wrapper.querySelector('.card');
 
-    wrapper.addEventListener('mouseenter', () => {
+    const handleEntry = () => {
         const theme = card.getAttribute('data-theme');
         transitTheme(theme);
-    });
+    };
 
-    wrapper.addEventListener('mouseleave', () => {
+    const handleExit = () => {
         transitTheme('default');
 
         // Only reset transforms on desktop
@@ -226,6 +226,18 @@ cardWrappers.forEach(wrapper => {
 
             contentInner.style.transform = 'translate(0, 0)';
             contentInner.style.transition = 'transform 0.8s cubic-bezier(0.33, 1, 0.68, 1)';
+        }
+    };
+
+    wrapper.addEventListener('mouseenter', handleEntry);
+    wrapper.addEventListener('mouseleave', handleExit);
+
+    // Accessibility: Keyboard Navigation
+    wrapper.addEventListener('focusin', handleEntry);
+    wrapper.addEventListener('focusout', (e) => {
+        // Only exit if focus moved outside the wrapper
+        if (!wrapper.contains(e.relatedTarget)) {
+            handleExit();
         }
     });
 
