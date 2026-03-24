@@ -204,7 +204,43 @@ function animate(timestamp) {
     requestAnimationFrame(animate);
 }
 
+// GitHub API Integration
+async function fetchRepoData() {
+    const metricContainers = document.querySelectorAll('.project-metrics');
+
+    // Bolt ⚡: Use Promise.all for concurrent fetching to improve load speed
+    const fetchPromises = Array.from(metricContainers).map(async (container) => {
+        const repo = container.getAttribute('data-repo');
+        const starsEl = container.querySelector('.stars .value');
+        const updatedEl = container.querySelector('.updated .value');
+
+        try {
+            const response = await fetch(`https://api.github.com/repos/${repo}`);
+            if (!response.ok) throw new Error('API Error');
+
+            const data = await response.json();
+
+            // Format date (e.g., "Oct 2025")
+            const date = new Date(data.pushed_at);
+            const formattedDate = date.toLocaleDateString('en-US', {
+                month: 'short',
+                year: 'numeric'
+            });
+
+            starsEl.textContent = data.stargazers_count;
+            updatedEl.textContent = formattedDate;
+        } catch (error) {
+            console.error(`Error fetching data for ${repo}:`, error);
+            starsEl.textContent = 'N/A';
+            updatedEl.textContent = 'Unknown';
+        }
+    });
+
+    await Promise.all(fetchPromises);
+}
+
 initParticles();
+fetchRepoData();
 animate();
 
 // Mobile Detection
