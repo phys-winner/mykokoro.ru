@@ -6,6 +6,7 @@ const TWO_PI = Math.PI * 2;
 let width, height;
 let particles = [];
 let activeTheme = 'default';
+let cachedIsMobile = false;
 
 // Theme Config
 const themes = {
@@ -13,13 +14,17 @@ const themes = {
         color: 'rgba(224, 224, 224, 0.1)',
         speedMult: 0.5,
         type: 'circle',
-        count: 50
+        count: 50,
+        wrap: true,
+        hasWind: false
     },
     ss2: { // Matrix/Digital
         color: 'rgba(40, 200, 80, 0.25)',
         speedMult: 2,
         type: 'square',
-        count: 80
+        count: 80,
+        wrap: false,
+        hasWind: false
     },
     tld: { // Blizzard
         color: 'rgba(160, 220, 240, 0.3)',
@@ -27,19 +32,24 @@ const themes = {
         type: 'circle',
         count: 150,
         gravity: 0.5,
-        wind: 1.5
+        wind: 1.5,
+        wrap: false,
+        hasWind: true
     },
     ts: { // Stealth/Void
         color: 'rgba(130, 60, 200, 0.25)',
         speedMult: 0.8,
         type: 'wisp',
-        count: 60
+        count: 60,
+        wrap: true,
+        hasWind: false
     }
 };
 
 function resize() {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
+    cachedIsMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 900;
 }
 window.addEventListener('resize', resize);
 resize();
@@ -85,33 +95,18 @@ class Particle {
         }
     }
 
-    update(time, theme) {
-        // Dynamic Wind Calculation
-        let currentVx = this.vx;
-        if (activeTheme === 'tld') {
-            // Base gust
-            let gust = Math.sin(time * 2) * 0.75 + Math.sin(time * 0.5) * 0.5 + Math.sin(time * 3.5) * 0.25;
-
-            // "Storm Burst" - smoothed
-            const stormSine = Math.sin(time * 0.5);
-            if (stormSine > 0.5) {
-                // Smooth transition for speed change
-                // Map range 0.5-1.0 to 0-4 (reduced max speed)
-                gust += (stormSine - 0.5) * 8;
-            }
-
-            currentVx += gust;
-        }
+    update(gust, theme) {
+        let currentVx = this.vx + (theme.hasWind ? gust : 0);
 
         this.x += currentVx;
         this.y += this.vy;
         this.life++;
 
-        if (activeTheme === 'default' || activeTheme === 'ts') {
+        if (theme.wrap) {
             if (this.x < 0) this.x = width;
-            if (this.x > width) this.x = 0;
+            else if (this.x > width) this.x = 0;
             if (this.y < 0) this.y = height;
-            if (this.y > height) this.y = 0;
+            else if (this.y > height) this.y = 0;
         } else {
             // Reset if out of bounds
             // Logic: If gone too far right or down
@@ -124,19 +119,15 @@ class Particle {
     }
 
     draw(theme) {
-        ctx.fillStyle = theme.color;
-
         if (theme.type === 'square') {
             ctx.fillRect(this.x, this.y, this.size, this.size * 5); // elongated for rain
         } else if (theme.type === 'wisp') {
-            ctx.beginPath();
             const radius = Math.abs(this.size * Math.sin(this.life * 0.05) + 2);
+            ctx.moveTo(this.x + radius, this.y);
             ctx.arc(this.x, this.y, radius, 0, TWO_PI);
-            ctx.fill();
         } else {
-            ctx.beginPath();
+            ctx.moveTo(this.x + this.size, this.y);
             ctx.arc(this.x, this.y, this.size, 0, TWO_PI);
-            ctx.fill();
         }
     }
 }
@@ -183,10 +174,32 @@ function animate(timestamp) {
     const currentTheme = themes[activeTheme];
     const time = timestamp ? timestamp / 1000 : Date.now() / 1000;
 
+    // Bolt ⚡: Hoist gust calculation to run once per frame instead of once per particle
+    let gust = 0;
+    if (currentTheme.hasWind) {
+        gust = Math.sin(time * 2) * 0.75 + Math.sin(time * 0.5) * 0.5 + Math.sin(time * 3.5) * 0.25;
+        const stormSine = Math.sin(time * 0.5);
+        if (stormSine > 0.5) {
+            gust += (stormSine - 0.5) * 8;
+        }
+    }
+
+    ctx.fillStyle = currentTheme.color;
+    const isSquare = currentTheme.type === 'square';
+
+    // Bolt ⚡: Batch fill calls for non-square particles to reduce GPU draw calls (O(1) instead of O(N))
+    if (!isSquare) {
+        ctx.beginPath();
+    }
+
     particles.forEach(p => {
-        p.update(time, currentTheme);
+        p.update(gust, currentTheme);
         p.draw(currentTheme);
     });
+
+    if (!isSquare) {
+        ctx.fill();
+    }
 
     requestAnimationFrame(animate);
 }
@@ -214,7 +227,7 @@ cardWrappers.forEach(wrapper => {
         transitTheme('default');
 
         // Only reset transforms on desktop
-        if (!isMobile()) {
+        if (!cachedIsMobile) {
             // Reset transform
             card.style.transform = 'rotateX(0) rotateY(0) scale3d(1, 1, 1) translateY(0)';
             card.style.transition = 'transform 0.6s cubic-bezier(0.33, 1, 0.68, 1), box-shadow 0.4s ease';
@@ -251,7 +264,7 @@ cardWrappers.forEach(wrapper => {
     // 3D Tilt Effect - Only on Desktop
     wrapper.addEventListener('mousemove', (e) => {
         // Skip all transform and parallax effects on mobile
-        if (isMobile()) return;
+        if (cachedIsMobile) return;
 
         const rect = wrapper.getBoundingClientRect();
         const x = e.clientX - rect.left;
