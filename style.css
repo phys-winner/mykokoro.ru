@@ -275,21 +275,24 @@ body[data-bg="ts"] header h1 {
     letter-spacing: 1px;
 }
 
-.card[data-theme="ss2"] .btn:hover {
+.card[data-theme="ss2"] .btn:hover,
+.card[data-theme="ss2"] .btn:focus-visible {
     background: var(--color-ss2);
     color: #050505;
     border-color: var(--color-ss2);
     box-shadow: 0 0 15px var(--color-ss2);
 }
 
-.card[data-theme="tld"] .btn:hover {
+.card[data-theme="tld"] .btn:hover,
+.card[data-theme="tld"] .btn:focus-visible {
     background: var(--color-tld);
     color: #050505;
     border-color: var(--color-tld);
     box-shadow: 0 0 15px var(--color-tld);
 }
 
-.card[data-theme="ts"] .btn:hover {
+.card[data-theme="ts"] .btn:hover,
+.card[data-theme="ts"] .btn:focus-visible {
     background: var(--color-ts);
     color: #fafafa;
     border-color: var(--color-ts);
@@ -452,4 +455,10 @@ footer a {
 
 footer a:hover {
     color: #fff;
+}
+
+footer a:focus-visible {
+    color: #fff;
+    outline: 2px solid #fff;
+    outline-offset: 4px;
 }
