@@ -46,6 +46,30 @@ const themes = {
     }
 };
 
+const projectDetails = {
+    ss2: {
+        title: "Aura-Sight",
+        description: "Aura-Sight is a sophisticated internal tool designed for System Shock 2. It provides real-time visualization of game world entities, enabling researchers and speedrunners to understand the game's complex AI and item systems through direct memory access and custom rendering.",
+        features: ["Bounding Box ESP", "Item Value Display", "AI State Monitoring", "Hidden Cache Detection"],
+        techStack: ["C++ / DirectX 9", "VMT Hooking", "MinHook Integration", "Custom ImGui Overlay"],
+        repoUrl: "https://github.com/phys-winner/ss2-aura-sight"
+    },
+    tld: {
+        title: "Fubuki-ESP",
+        description: "Fubuki-ESP (Snowstorm) is a lightweight, performance-focused exploration tool for The Long Dark. It helps players navigate the harsh wilderness of Great Bear Island by identifying critical survival resources and wildlife locations without compromising the game's immersive atmosphere.",
+        features: ["Wildlife Tracking", "Resource Highlighting", "Weather Prediction Data", "Container Inventory Peek"],
+        techStack: ["C++ / Unity Engine", "Mono Injection", "Pattern Scanning", "Custom Shader Rendering"],
+        repoUrl: "https://github.com/phys-winner/fubuki-esp"
+    },
+    ts: {
+        title: "Byakugan",
+        description: "Byakugan provides unparalleled mechanical insight for Thief Simulator. By visualizing security systems, guard patrol paths, and loot density, it serves as a comprehensive tool for analyzing the game's stealth mechanics and level design efficiency.",
+        features: ["Guard Vision Cone Visualization", "Patrol Path Mapping", "Loot Density Heatmap", "Security System Diagnostics"],
+        techStack: ["C++ / Unity Engine", "Bypass Techniques", "Reflection-based Analysis", "Persistent Config System"],
+        repoUrl: "https://github.com/phys-winner/thief-simulator-byakugan"
+    }
+};
+
 function resize() {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
@@ -248,6 +272,53 @@ function isMobile() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 900;
 }
 
+// Modal Logic
+const modal = document.getElementById('project-modal');
+const modalClose = modal.querySelector('.modal-close');
+const modalTitle = document.getElementById('modal-title');
+const modalDescription = document.getElementById('modal-description');
+const modalFeatures = document.getElementById('modal-features');
+const modalTechStack = document.getElementById('modal-tech-stack');
+const modalGithubLink = document.getElementById('modal-github-link');
+
+function openModal(projectId) {
+    const data = projectDetails[projectId];
+    if (!data) return;
+
+    modalTitle.textContent = data.title;
+    modalDescription.textContent = data.description;
+    modalGithubLink.href = data.repoUrl;
+
+    modalFeatures.innerHTML = data.features.map(f => `<li>${f}</li>`).join('');
+    modalTechStack.innerHTML = data.techStack.map(t => `<li>${t}</li>`).join('');
+
+    modal.setAttribute('data-theme', projectId);
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+
+    // Focus trapping - initially focus close button
+    setTimeout(() => modalClose.focus(), 100);
+}
+
+function closeModal() {
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    transitTheme('default');
+}
+
+modalClose.addEventListener('click', closeModal);
+modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+});
+
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('active')) {
+        closeModal();
+    }
+});
+
 // Interaction Handlers
 const cardWrappers = document.querySelectorAll('.card-wrapper');
 
@@ -295,6 +366,13 @@ cardWrappers.forEach(wrapper => {
     wrapper.addEventListener('touchstart', () => {
         const theme = card.getAttribute('data-theme');
         transitTheme(theme);
+    });
+
+    const detailsBtn = wrapper.querySelector('.btn-details');
+    detailsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const projectId = detailsBtn.getAttribute('data-project');
+        openModal(projectId);
     });
 
     // 3D Tilt Effect - Only on Desktop
