@@ -43,8 +43,11 @@
                                 <span class="metric stars"><i class="fas fa-star"></i> <span class="value">-</span></span>
                                 <span class="metric updated"><i class="fas fa-history"></i> <span class="value">-</span></span>
                             </div>
-                            <a href="https://github.com/phys-winner/ss2-aura-sight" class="btn"
-                                aria-label="View Aura-Sight on GitHub"><i class="fab fa-github"></i> GitHub</a>
+                            <div class="card-actions">
+                                <a href="https://github.com/phys-winner/ss2-aura-sight" class="btn btn-github"
+                                    aria-label="View Aura-Sight on GitHub"><i class="fab fa-github"></i> GitHub</a>
+                                <button class="btn btn-details" data-project="ss2" aria-label="View Aura-Sight Details">Details</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -72,9 +75,12 @@
                                 <span class="metric stars"><i class="fas fa-star"></i> <span class="value">-</span></span>
                                 <span class="metric updated"><i class="fas fa-history"></i> <span class="value">-</span></span>
                             </div>
-                            <a href="https://github.com/phys-winner/fubuki-esp" class="btn"
-                                aria-label="View Fubuki-ESP on GitHub"><i class="fab fa-github"></i>
-                                GitHub</a>
+                            <div class="card-actions">
+                                <a href="https://github.com/phys-winner/fubuki-esp" class="btn btn-github"
+                                    aria-label="View Fubuki-ESP on GitHub"><i class="fab fa-github"></i>
+                                    GitHub</a>
+                                <button class="btn btn-details" data-project="tld" aria-label="View Fubuki-ESP Details">Details</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -102,14 +108,46 @@
                                 <span class="metric stars"><i class="fas fa-star"></i> <span class="value">-</span></span>
                                 <span class="metric updated"><i class="fas fa-history"></i> <span class="value">-</span></span>
                             </div>
-                            <a href="https://github.com/phys-winner/thief-simulator-byakugan" class="btn"
-                                aria-label="View Byakugan on GitHub"><i class="fab fa-github"></i> GitHub</a>
+                            <div class="card-actions">
+                                <a href="https://github.com/phys-winner/thief-simulator-byakugan" class="btn btn-github"
+                                    aria-label="View Byakugan on GitHub"><i class="fab fa-github"></i> GitHub</a>
+                                <button class="btn btn-details" data-project="ts" aria-label="View Byakugan Details">Details</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
+
+    <div id="project-modal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content" role="dialog" aria-labelledby="modal-title">
+            <button class="modal-close" aria-label="Close modal">&times;</button>
+            <div class="modal-body">
+                <div class="modal-header">
+                    <h2 id="modal-title">Project Name</h2>
+                    <span class="status-badge">Operational</span>
+                </div>
+                <p id="modal-description">Detailed description goes here.</p>
+                <div class="modal-tech-grid">
+                    <div class="tech-section">
+                        <h3>Features</h3>
+                        <ul id="modal-features">
+                        </ul>
+                    </div>
+                    <div class="tech-section">
+                        <h3>Technical Stack</h3>
+                        <ul id="modal-tech-stack">
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="#" id="modal-github-link" class="btn btn-github"><i class="fab fa-github"></i> View
+                        Repository</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer>
         <p>&copy; 2026 Google (Antigravity) & <a href="https://github.com/phys-winner">phys-winner</a> | Images by
