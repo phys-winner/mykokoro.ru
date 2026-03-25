@@ -7,6 +7,15 @@ let width, height;
 let particles = [];
 let activeTheme = 'default';
 let cachedIsMobile = false;
+const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+let prefersReducedMotion = motionQuery.matches;
+
+motionQuery.addEventListener('change', () => {
+    prefersReducedMotion = motionQuery.matches;
+    if (prefersReducedMotion) {
+        initParticles();
+    }
+});
 
 // Theme Config
 const themes = {
@@ -120,10 +129,11 @@ class Particle {
     }
 
     update(gust, theme) {
-        let currentVx = this.vx + (theme.hasWind ? gust : 0);
+        const speedFactor = prefersReducedMotion ? 0.2 : 1;
+        let currentVx = (this.vx + (theme.hasWind ? gust : 0)) * speedFactor;
 
         this.x += currentVx;
-        this.y += this.vy;
+        this.y += this.vy * speedFactor;
         this.life++;
 
         if (theme.wrap) {
@@ -165,7 +175,10 @@ function transitTheme(newTheme) {
 
 function initParticles() {
     particles = [];
-    const count = themes[activeTheme].count;
+    let count = themes[activeTheme].count;
+    if (prefersReducedMotion) {
+        count = Math.min(count, 20);
+    }
     for (let i = 0; i < count; i++) {
         particles.push(new Particle());
     }
@@ -252,11 +265,15 @@ async function fetchRepoData() {
             });
 
             starsEl.textContent = data.stargazers_count;
+            starsEl.setAttribute('aria-label', `${data.stargazers_count} stars`);
             updatedEl.textContent = formattedDate;
+            updatedEl.setAttribute('aria-label', `Last updated ${formattedDate}`);
         } catch (error) {
             console.error(`Error fetching data for ${repo}:`, error);
             starsEl.textContent = 'N/A';
+            starsEl.setAttribute('aria-label', 'Stars unavailable');
             updatedEl.textContent = 'Unknown';
+            updatedEl.setAttribute('aria-label', 'Update date unavailable');
         }
     });
 
@@ -400,8 +417,8 @@ cardWrappers.forEach(wrapper => {
 
     // 3D Tilt Effect - Only on Desktop
     wrapper.addEventListener('mousemove', (e) => {
-        // Skip all transform and parallax effects on mobile
-        if (cachedIsMobile) return;
+        // Skip all transform and parallax effects on mobile or if motion is reduced
+        if (cachedIsMobile || prefersReducedMotion) return;
 
         const rect = wrapper.getBoundingClientRect();
         const x = e.clientX - rect.left;
