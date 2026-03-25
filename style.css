@@ -445,6 +445,13 @@ body[data-bg="ts"] header h1 {
     opacity: 1;
 }
 
+.modal-close:focus-visible {
+    outline: 2px solid var(--theme-accent, #fff);
+    outline-offset: 4px;
+    opacity: 1;
+    border-radius: 4px;
+}
+
 .modal-body {
     padding: 3rem;
 }
@@ -463,6 +470,9 @@ body[data-bg="ts"] header h1 {
 }
 
 .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     padding: 0.4rem 1rem;
     background: rgba(50, 215, 75, 0.15);
     color: #32d74b;
@@ -471,6 +481,37 @@ body[data-bg="ts"] header h1 {
     font-size: 0.8rem;
     font-weight: 700;
     text-transform: uppercase;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background-color: currentColor;
+    border-radius: 50%;
+    position: relative;
+}
+
+.pulse-dot::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: inherit;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
 }
 
 #modal-description {

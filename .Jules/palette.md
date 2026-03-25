@@ -1,3 +1,3 @@
-## 2026-03-23 - [Synchronizing Delight with Accessibility]
-**Learning:** Micro-interactions (like theme-shifting particles) are often coupled only to mouse `hover` events, creating an "experience gap" for keyboard users. By synchronizing CSS `:focus-within` and JS `focusin`/`focusout` with existing hover logic, we ensure that delight is accessible to all.
-**Action:** Always verify that interactive "delight" states (animations, theme changes) are triggered by keyboard focus as well as mouse hover.
+## 2025-10-24 - Modal Focus Management & Tab Order Optimization
+**Learning:** For interactive project cards that use CSS `:focus-within` to trigger animations, adding a `tabindex="0"` to the container creates redundant tab stops. Removing these while ensuring inner buttons have clear focus states improves navigation speed for keyboard users. Additionally, manual focus trapping in modals is essential for a "native" feel on the web.
+**Action:** Always audit tab stops in galleries and implement `lastFocusedElement` tracking for modal components.

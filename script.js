@@ -280,8 +280,10 @@ const modalDescription = document.getElementById('modal-description');
 const modalFeatures = document.getElementById('modal-features');
 const modalTechStack = document.getElementById('modal-tech-stack');
 const modalGithubLink = document.getElementById('modal-github-link');
+let lastFocusedElement;
 
 function openModal(projectId) {
+    lastFocusedElement = document.activeElement;
     const data = projectDetails[projectId];
     if (!data) return;
 
@@ -306,6 +308,7 @@ function closeModal() {
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
     transitTheme('default');
+    if (lastFocusedElement) lastFocusedElement.focus();
 }
 
 modalClose.addEventListener('click', closeModal);
@@ -314,8 +317,28 @@ modal.addEventListener('click', (e) => {
 });
 
 window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.classList.contains('active')) {
+    if (!modal.classList.contains('active')) return;
+
+    if (e.key === 'Escape') {
         closeModal();
+    }
+
+    if (e.key === 'Tab') {
+        const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+            if (document.activeElement === firstElement) {
+                lastElement.focus();
+                e.preventDefault();
+            }
+        } else {
+            if (document.activeElement === lastElement) {
+                firstElement.focus();
+                e.preventDefault();
+            }
+        }
     }
 });
 
