@@ -231,8 +231,31 @@ function animate(timestamp) {
 // GitHub API Integration
 async function fetchRepoData() {
     const metricContainers = document.querySelectorAll('.project-metrics');
+    const CACHE_KEY = 'mykokoro_repo_cache';
+    const CACHE_TTL = 3600000; // 1 hour
 
-    // Bolt ⚡: Use Promise.all for concurrent fetching to improve load speed
+    // Bolt ⚡: Implement localStorage caching to reduce API calls and improve load speed
+    const cachedData = localStorage.getItem(CACHE_KEY);
+    if (cachedData) {
+        try {
+            const { timestamp, data } = JSON.parse(cachedData);
+            if (Date.now() - timestamp < CACHE_TTL) {
+                metricContainers.forEach(container => {
+                    const repo = container.getAttribute('data-repo');
+                    if (data[repo]) {
+                        container.querySelector('.stars .value').textContent = data[repo].stars;
+                        container.querySelector('.updated .value').textContent = data[repo].updated;
+                    }
+                });
+                return;
+            }
+        } catch (e) {
+            console.error('Error parsing cached data:', e);
+            localStorage.removeItem(CACHE_KEY);
+        }
+    }
+
+    const results = {};
     const fetchPromises = Array.from(metricContainers).map(async (container) => {
         const repo = container.getAttribute('data-repo');
         const starsEl = container.querySelector('.stars .value');
@@ -243,16 +266,14 @@ async function fetchRepoData() {
             if (!response.ok) throw new Error('API Error');
 
             const data = await response.json();
-
-            // Format date (e.g., "Oct 2025")
-            const date = new Date(data.pushed_at);
-            const formattedDate = date.toLocaleDateString('en-US', {
+            const formattedDate = new Date(data.pushed_at).toLocaleDateString('en-US', {
                 month: 'short',
                 year: 'numeric'
             });
 
             starsEl.textContent = data.stargazers_count;
             updatedEl.textContent = formattedDate;
+            results[repo] = { stars: data.stargazers_count, updated: formattedDate };
         } catch (error) {
             console.error(`Error fetching data for ${repo}:`, error);
             starsEl.textContent = 'N/A';
@@ -261,16 +282,15 @@ async function fetchRepoData() {
     });
 
     await Promise.all(fetchPromises);
+    if (Object.keys(results).length > 0) {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), data: results }));
+    }
 }
 
 initParticles();
 fetchRepoData();
 animate();
 
-// Mobile Detection
-function isMobile() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 900;
-}
 
 // Modal Logic
 const modal = document.getElementById('project-modal');
