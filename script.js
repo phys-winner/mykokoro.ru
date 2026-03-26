@@ -267,11 +267,6 @@ initParticles();
 fetchRepoData();
 animate();
 
-// Mobile Detection
-function isMobile() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 900;
-}
-
 // Modal Logic
 const modal = document.getElementById('project-modal');
 const modalClose = modal.querySelector('.modal-close');
