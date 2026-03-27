@@ -119,10 +119,9 @@ class Particle {
         }
     }
 
-    update(gust, theme) {
-        let currentVx = this.vx + (theme.hasWind ? gust : 0);
-
-        this.x += currentVx;
+    update(gust) {
+        const theme = themes[activeTheme];
+        this.x += this.vx + gust;
         this.y += this.vy;
         this.life++;
 
@@ -158,10 +157,6 @@ class Particle {
 
 let targetTheme = 'default';
 let crystalOpacity = 1;
-
-function transitTheme(newTheme) {
-    targetTheme = newTheme;
-}
 
 function initParticles() {
     particles = [];
@@ -217,7 +212,7 @@ function animate(timestamp) {
     }
 
     particles.forEach(p => {
-        p.update(gust, currentTheme);
+        p.update(gust);
         p.draw(currentTheme);
     });
 
@@ -325,7 +320,7 @@ function closeModal() {
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
-    transitTheme('default');
+    targetTheme = 'default';
 }
 
 modalClose.addEventListener('click', closeModal);
@@ -346,12 +341,11 @@ cardWrappers.forEach(wrapper => {
     const card = wrapper.querySelector('.card');
 
     const handleEntry = () => {
-        const theme = card.getAttribute('data-theme');
-        transitTheme(theme);
+        targetTheme = card.getAttribute('data-theme');
     };
 
     const handleExit = () => {
-        transitTheme('default');
+        targetTheme = 'default';
 
         // Only reset transforms on desktop
         if (!cachedIsMobile) {
@@ -384,8 +378,7 @@ cardWrappers.forEach(wrapper => {
     });
 
     wrapper.addEventListener('touchstart', () => {
-        const theme = card.getAttribute('data-theme');
-        transitTheme(theme);
+        targetTheme = card.getAttribute('data-theme');
     });
 
     const detailsBtn = wrapper.querySelector('.btn-details');

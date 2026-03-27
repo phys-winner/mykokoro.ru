@@ -462,17 +462,6 @@ body[data-bg="ts"] header h1 {
     letter-spacing: 2px;
 }
 
-.status-badge {
-    padding: 0.4rem 1rem;
-    background: rgba(50, 215, 75, 0.15);
-    color: #32d74b;
-    border: 1px solid rgba(50, 215, 75, 0.3);
-    border-radius: 50px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-}
-
 #modal-description {
     font-size: 1.1rem;
     line-height: 1.6;
