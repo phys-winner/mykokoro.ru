@@ -194,35 +194,40 @@ function animate(timestamp) {
 
     ctx.globalAlpha = crystalOpacity;
 
-    // Performance Optimization: Cache current theme and calculate time once per frame
-    const currentTheme = themes[activeTheme];
-    const time = timestamp ? timestamp / 1000 : Date.now() / 1000;
+    const particleCount = particles.length;
+    if (particleCount > 0) {
+        // Bolt ⚡: Cache current theme and calculate time once per frame
+        const currentTheme = themes[activeTheme];
+        const time = timestamp ? timestamp / 1000 : Date.now() / 1000;
 
-    // Bolt ⚡: Hoist gust calculation to run once per frame instead of once per particle
-    let gust = 0;
-    if (currentTheme.hasWind) {
-        gust = Math.sin(time * 2) * 0.75 + Math.sin(time * 0.5) * 0.5 + Math.sin(time * 3.5) * 0.25;
-        const stormSine = Math.sin(time * 0.5);
-        if (stormSine > 0.5) {
-            gust += (stormSine - 0.5) * 8;
+        // Bolt ⚡: Hoist gust calculation to run once per frame instead of once per particle
+        let gust = 0;
+        if (currentTheme.hasWind) {
+            gust = Math.sin(time * 2) * 0.75 + Math.sin(time * 0.5) * 0.5 + Math.sin(time * 3.5) * 0.25;
+            const stormSine = Math.sin(time * 0.5);
+            if (stormSine > 0.5) {
+                gust += (stormSine - 0.5) * 8;
+            }
         }
-    }
 
-    ctx.fillStyle = currentTheme.color;
-    const isSquare = currentTheme.type === 'square';
+        ctx.fillStyle = currentTheme.color;
+        const isSquare = currentTheme.type === 'square';
 
-    // Bolt ⚡: Batch fill calls for non-square particles to reduce GPU draw calls (O(1) instead of O(N))
-    if (!isSquare) {
-        ctx.beginPath();
-    }
+        // Bolt ⚡: Batch fill calls for non-square particles to reduce GPU draw calls (O(1) instead of O(N))
+        if (!isSquare) {
+            ctx.beginPath();
+        }
 
-    particles.forEach(p => {
-        p.update(gust, currentTheme);
-        p.draw(currentTheme);
-    });
+        // Bolt ⚡: Using a standard for-loop for better performance in high-frequency animation frames
+        for (let i = 0; i < particleCount; i++) {
+            const p = particles[i];
+            p.update(gust, currentTheme);
+            p.draw(currentTheme);
+        }
 
-    if (!isSquare) {
-        ctx.fill();
+        if (!isSquare) {
+            ctx.fill();
+        }
     }
 
     requestAnimationFrame(animate);
@@ -344,10 +349,20 @@ const cardWrappers = document.querySelectorAll('.card-wrapper');
 
 cardWrappers.forEach(wrapper => {
     const card = wrapper.querySelector('.card');
+    let rect = null;
+    let img = null;
+    let contentInner = null;
 
     const handleEntry = () => {
         const theme = card.getAttribute('data-theme');
         transitTheme(theme);
+
+        // Bolt ⚡: Cache dimensions and DOM lookups once per hover to avoid layout thrashing in mousemove
+        if (!cachedIsMobile) {
+            rect = wrapper.getBoundingClientRect();
+            img = card.querySelector('.card-image img');
+            contentInner = card.querySelector('.card-content-inner');
+        }
     };
 
     const handleExit = () => {
@@ -360,14 +375,14 @@ cardWrappers.forEach(wrapper => {
             card.style.transition = 'transform 0.6s cubic-bezier(0.33, 1, 0.68, 1), box-shadow 0.4s ease';
 
             // Reset Parallax
-            const img = card.querySelector('.card-image img');
-            const contentInner = card.querySelector('.card-content-inner');
+            const imgEl = card.querySelector('.card-image img');
+            const contentInnerEl = card.querySelector('.card-content-inner');
 
-            img.style.transform = 'translate(0, 0)';
-            img.style.transition = 'transform 0.8s cubic-bezier(0.33, 1, 0.68, 1), filter 0.5s ease';
+            imgEl.style.transform = 'translate(0, 0)';
+            imgEl.style.transition = 'transform 0.8s cubic-bezier(0.33, 1, 0.68, 1), filter 0.5s ease';
 
-            contentInner.style.transform = 'translate(0, 0)';
-            contentInner.style.transition = 'transform 0.8s cubic-bezier(0.33, 1, 0.68, 1)';
+            contentInnerEl.style.transform = 'translate(0, 0)';
+            contentInnerEl.style.transition = 'transform 0.8s cubic-bezier(0.33, 1, 0.68, 1)';
         }
     };
 
@@ -397,10 +412,9 @@ cardWrappers.forEach(wrapper => {
 
     // 3D Tilt Effect - Only on Desktop
     wrapper.addEventListener('mousemove', (e) => {
-        // Skip all transform and parallax effects on mobile
-        if (cachedIsMobile) return;
+        // Skip all transform and parallax effects on mobile or if rect is not cached
+        if (cachedIsMobile || !rect) return;
 
-        const rect = wrapper.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
@@ -415,21 +429,20 @@ cardWrappers.forEach(wrapper => {
         card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05) translateY(-10px)`;
         card.style.transition = 'box-shadow 0.4s ease';
 
-        // Parallax Effects
-        const img = card.querySelector('.card-image img');
-        const contentInner = card.querySelector('.card-content-inner');
+        // Parallax Effects (Bolt ⚡: Using cached elements)
+        if (img && contentInner) {
+            // Move image significantly (Far Parallax)
+            const moveX = (x - centerX) / centerX * -15;
+            const moveY = (y - centerY) / centerY * -15;
 
-        // Move image significantly (Far Parallax)
-        const moveX = (x - centerX) / centerX * -15;
-        const moveY = (y - centerY) / centerY * -15;
+            img.style.transform = `scale(1) translate(${moveX}px, ${moveY}px)`;
+            img.style.transition = 'filter 0.5s ease, transform 0s';
 
-        img.style.transform = `scale(1) translate(${moveX}px, ${moveY}px)`;
-        img.style.transition = 'filter 0.5s ease, transform 0s';
-
-        // Move content in the direction of tilt (Pop Out)
-        const contentX = (x - centerX) / centerX * 15;
-        const contentY = (y - centerY) / centerY * 15;
-        contentInner.style.transform = `translate(${contentX}px, ${contentY}px)`;
-        contentInner.style.transition = 'transform 0s';
+            // Move content in the direction of tilt (Pop Out)
+            const contentX = (x - centerX) / centerX * 15;
+            const contentY = (y - centerY) / centerY * 15;
+            contentInner.style.transform = `translate(${contentX}px, ${contentY}px)`;
+            contentInner.style.transition = 'transform 0s';
+        }
     });
 });
