@@ -216,10 +216,12 @@ function animate(timestamp) {
         ctx.beginPath();
     }
 
-    particles.forEach(p => {
+    // Bolt ⚡: Use standard for-loop for better performance in high-frequency animation frames
+    for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
         p.update(gust, currentTheme);
         p.draw(currentTheme);
-    });
+    }
 
     if (!isSquare) {
         ctx.fill();
@@ -344,10 +346,22 @@ const cardWrappers = document.querySelectorAll('.card-wrapper');
 
 cardWrappers.forEach(wrapper => {
     const card = wrapper.querySelector('.card');
+    const img = card.querySelector('.card-image img');
+    const contentInner = card.querySelector('.card-content-inner');
+    let rect = null;
 
     const handleEntry = () => {
         const theme = card.getAttribute('data-theme');
         transitTheme(theme);
+
+        // Bolt ⚡: Cache rect on entry to avoid layout thrashing in mousemove (60fps)
+        if (!cachedIsMobile) {
+            rect = wrapper.getBoundingClientRect();
+
+            // Bolt ⚡: Hoist transition resets to entry to avoid redundant assignments in mousemove
+            img.style.transition = 'filter 0.5s ease, transform 0s';
+            contentInner.style.transition = 'transform 0s';
+        }
     };
 
     const handleExit = () => {
@@ -360,9 +374,6 @@ cardWrappers.forEach(wrapper => {
             card.style.transition = 'transform 0.6s cubic-bezier(0.33, 1, 0.68, 1), box-shadow 0.4s ease';
 
             // Reset Parallax
-            const img = card.querySelector('.card-image img');
-            const contentInner = card.querySelector('.card-content-inner');
-
             img.style.transform = 'translate(0, 0)';
             img.style.transition = 'transform 0.8s cubic-bezier(0.33, 1, 0.68, 1), filter 0.5s ease';
 
@@ -398,9 +409,9 @@ cardWrappers.forEach(wrapper => {
     // 3D Tilt Effect - Only on Desktop
     wrapper.addEventListener('mousemove', (e) => {
         // Skip all transform and parallax effects on mobile
-        if (cachedIsMobile) return;
+        // Bolt ⚡: Use cached rect to avoid O(N) layout property lookups during mousemove
+        if (cachedIsMobile || !rect) return;
 
-        const rect = wrapper.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
@@ -416,20 +427,15 @@ cardWrappers.forEach(wrapper => {
         card.style.transition = 'box-shadow 0.4s ease';
 
         // Parallax Effects
-        const img = card.querySelector('.card-image img');
-        const contentInner = card.querySelector('.card-content-inner');
-
         // Move image significantly (Far Parallax)
         const moveX = (x - centerX) / centerX * -15;
         const moveY = (y - centerY) / centerY * -15;
 
         img.style.transform = `scale(1) translate(${moveX}px, ${moveY}px)`;
-        img.style.transition = 'filter 0.5s ease, transform 0s';
 
         // Move content in the direction of tilt (Pop Out)
         const contentX = (x - centerX) / centerX * 15;
         const contentY = (y - centerY) / centerY * 15;
         contentInner.style.transform = `translate(${contentX}px, ${contentY}px)`;
-        contentInner.style.transition = 'transform 0s';
     });
 });
