@@ -216,10 +216,12 @@ function animate(timestamp) {
         ctx.beginPath();
     }
 
-    particles.forEach(p => {
+    // Bolt ⚡: Use standard for loop to reduce per-frame overhead in the animation loop
+    for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
         p.update(gust, currentTheme);
         p.draw(currentTheme);
-    });
+    }
 
     if (!isSquare) {
         ctx.fill();
@@ -344,14 +346,21 @@ const cardWrappers = document.querySelectorAll('.card-wrapper');
 
 cardWrappers.forEach(wrapper => {
     const card = wrapper.querySelector('.card');
+    // Bolt ⚡: Cache sub-elements during initialization to avoid repeated DOM queries
+    const img = card.querySelector('.card-image img');
+    const contentInner = card.querySelector('.card-content-inner');
+    let wrapperRect = null;
 
     const handleEntry = () => {
         const theme = card.getAttribute('data-theme');
         transitTheme(theme);
+        // Bolt ⚡: Cache bounding rect on entry to prevent layout thrashing during mousemove
+        wrapperRect = wrapper.getBoundingClientRect();
     };
 
     const handleExit = () => {
         transitTheme('default');
+        wrapperRect = null;
 
         // Only reset transforms on desktop
         if (!cachedIsMobile) {
@@ -360,9 +369,6 @@ cardWrappers.forEach(wrapper => {
             card.style.transition = 'transform 0.6s cubic-bezier(0.33, 1, 0.68, 1), box-shadow 0.4s ease';
 
             // Reset Parallax
-            const img = card.querySelector('.card-image img');
-            const contentInner = card.querySelector('.card-content-inner');
-
             img.style.transform = 'translate(0, 0)';
             img.style.transition = 'transform 0.8s cubic-bezier(0.33, 1, 0.68, 1), filter 0.5s ease';
 
@@ -397,16 +403,15 @@ cardWrappers.forEach(wrapper => {
 
     // 3D Tilt Effect - Only on Desktop
     wrapper.addEventListener('mousemove', (e) => {
-        // Skip all transform and parallax effects on mobile
-        if (cachedIsMobile) return;
+        // Skip all transform and parallax effects on mobile or if rect is missing
+        if (cachedIsMobile || !wrapperRect) return;
 
-        const rect = wrapper.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const x = e.clientX - wrapperRect.left;
+        const y = e.clientY - wrapperRect.top;
 
         // Calculate center relative position
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
+        const centerX = wrapperRect.width / 2;
+        const centerY = wrapperRect.height / 2;
 
         const rotateX = ((y - centerY) / centerY) * -10; // Max rotation 10deg
         const rotateY = ((x - centerX) / centerX) * 10;
@@ -416,9 +421,6 @@ cardWrappers.forEach(wrapper => {
         card.style.transition = 'box-shadow 0.4s ease';
 
         // Parallax Effects
-        const img = card.querySelector('.card-image img');
-        const contentInner = card.querySelector('.card-content-inner');
-
         // Move image significantly (Far Parallax)
         const moveX = (x - centerX) / centerX * -15;
         const moveY = (y - centerY) / centerY * -15;
